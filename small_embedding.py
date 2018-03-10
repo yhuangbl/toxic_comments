@@ -4,6 +4,7 @@ import pandas as pd
 import re
 import pickle
 from utils import max_features, maxlen, embed_size_fastText, embed_size_glove, embed_size_glove_twitter
+
 from keras.preprocessing import text, sequence
 
 import warnings
@@ -67,13 +68,10 @@ Generate embedding matrix for fastText, glove, glove(twitter)
 train = pd.read_csv('input/train.csv')
 test = pd.read_csv('input/test.csv')
 
-X_train = train["comment_text"].fillna("_NA_").values
-y_train = train[["toxic", "severe_toxic", "obscene", "threat", "insult", "identity_hate"]].values
-# y_train_toxic = train["toxic"].values
-# y_train_severe_toxic = train["severe_toxic"].values
-# y_train_obscene = train["obscene"].values
-# y_train_threat = train["threat"].values
-# y_train_identity_hate = train["identity_hate"].values
+small_size = train.shape[0] // 10
+
+X_train = train["comment_text"].fillna("_NA_").values[:small_size]
+y_train = train[["toxic", "severe_toxic", "obscene", "threat", "insult", "identity_hate"]].values[:small_size, :]
 X_test = test["comment_text"].fillna("_NA_").values
 
 X_train = normalize_array(X_train)
@@ -85,36 +83,30 @@ X_train = tokenizer.texts_to_sequences(X_train)
 X_test = tokenizer.texts_to_sequences(X_test)
 x_train = sequence.pad_sequences(X_train, maxlen=maxlen)
 x_test = sequence.pad_sequences(X_test, maxlen=maxlen)
-pickle.dump(x_train, open("input/x_train.pickle", "wb"))
-pickle.dump(y_train, open("input/y_train.pickle", "wb"))
-# pickle.dump(y_train_toxic, open("input/y_train_toxic.pickle", "wb"))
-# pickle.dump(y_train_severe_toxic, open("input/y_train_severe_toxic.pickle", "wb"))
-# pickle.dump(y_train_obscene, open("input/y_train_obscene.pickle", "wb"))
-# pickle.dump(y_train_threat, open("input/y_train_threat.pickle", "wb"))
-# pickle.dump(y_train_identity_hate, open("input/y_train_identity_hate.pickle", "wb"))
-pickle.dump(x_test, open("input/x_test.pickle", "wb"))
+pickle.dump(x_train, open("input/x_train_small.pickle", "wb"))
+pickle.dump(y_train, open("input/y_train_small.pickle", "wb"))
 
 
-def get_coefs(word, *arr):
-    return word, np.asarray(arr, dtype='float32')
+# def get_coefs(word, *arr):
+#     return word, np.asarray(arr, dtype='float32')
 
-def generate_embedding_matrix(embedding_file, out_pickle, embed_size):
-    embeddings_index = dict(get_coefs(*o.rstrip().rsplit(' ')) for o in open(embedding_file, encoding="utf-8"))
-    word_index = tokenizer.word_index
-    nb_words = min(max_features, len(word_index))
-    embedding_matrix = np.zeros((nb_words, embed_size))
-    for word, i in word_index.items():
-        if i >= max_features: 
-            continue
-        embedding_vector = embeddings_index.get(word)
-        if embedding_vector is not None:
-            embedding_matrix[i] = embedding_vector
-    # save to pickle
-    pickle.dump(embedding_matrix, open(out_pickle, "wb"))
+# def generate_embedding_matrix(embedding_file, out_pickle, embed_size):
+#     embeddings_index = dict(get_coefs(*o.rstrip().rsplit(' ')) for o in open(embedding_file))
+#     word_index = tokenizer.word_index
+#     nb_words = min(max_features, len(word_index))
+#     embedding_matrix = np.zeros((nb_words, embed_size))
+#     for word, i in word_index.items():
+#         if i >= max_features: 
+#             continue
+#         embedding_vector = embeddings_index.get(word)
+#         if embedding_vector is not None:
+#             embedding_matrix[i] = embedding_vector
+#     # save to pickle
+#     pickle.dump(embedding_matrix, open(out_pickle, "wb"))
 
-# fastText
-generate_embedding_matrix("input/fastText.300d.vec", "input/fastText.300d.pickle", embed_size_fastText)
-# Glove
-generate_embedding_matrix("input/glove.840B.300d.txt", "input/glove.300d.pickle", embed_size_glove)
-# Glove(twitter)
-generate_embedding_matrix("input/glove.twitter.27B.200d.txt", "input/glove.twitter.200d.pickle", embed_size_glove_twitter)
+# # fastText
+# generate_embedding_matrix("input/fastText.300d.vec", "input/fastText.300d.small.pickle", embed_size_fastText)
+# # Glove
+# generate_embedding_matrix("input/glove.840B.300d.txt", "input/glove.300d.small.pickle", embed_size_glove)
+# # Glove(twitter)
+# generate_embedding_matrix("input/glove.twitter.27B.200d.txt", "input/glove.twitter.200d.small.pickle", embed_size_glove_twitter)
