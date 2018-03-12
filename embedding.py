@@ -5,6 +5,7 @@ import re
 import pickle
 from utils import max_features, maxlen, embed_size_fastText, embed_size_glove, embed_size_glove_twitter
 from keras.preprocessing import text, sequence
+import sys
 
 import warnings
 warnings.filterwarnings('ignore')
@@ -69,11 +70,6 @@ test = pd.read_csv('input/test.csv')
 
 X_train = train["comment_text"].fillna("_NA_").values
 y_train = train[["toxic", "severe_toxic", "obscene", "threat", "insult", "identity_hate"]].values
-# y_train_toxic = train["toxic"].values
-# y_train_severe_toxic = train["severe_toxic"].values
-# y_train_obscene = train["obscene"].values
-# y_train_threat = train["threat"].values
-# y_train_identity_hate = train["identity_hate"].values
 X_test = test["comment_text"].fillna("_NA_").values
 
 X_train = normalize_array(X_train)
@@ -87,11 +83,6 @@ x_train = sequence.pad_sequences(X_train, maxlen=maxlen)
 x_test = sequence.pad_sequences(X_test, maxlen=maxlen)
 pickle.dump(x_train, open("input/x_train.pickle", "wb"))
 pickle.dump(y_train, open("input/y_train.pickle", "wb"))
-# pickle.dump(y_train_toxic, open("input/y_train_toxic.pickle", "wb"))
-# pickle.dump(y_train_severe_toxic, open("input/y_train_severe_toxic.pickle", "wb"))
-# pickle.dump(y_train_obscene, open("input/y_train_obscene.pickle", "wb"))
-# pickle.dump(y_train_threat, open("input/y_train_threat.pickle", "wb"))
-# pickle.dump(y_train_identity_hate, open("input/y_train_identity_hate.pickle", "wb"))
 pickle.dump(x_test, open("input/x_test.pickle", "wb"))
 
 

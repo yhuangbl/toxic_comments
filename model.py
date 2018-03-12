@@ -28,30 +28,6 @@ from keras.engine.topology import Layer, InputSpec
 from keras import initializers, regularizers, constraints
 import tensorflow as tf
 
-class KMaxPooling(Layer):
-    """
-    K-max pooling layer that extracts the k-highest activations from a sequence (2nd dimension).
-    TensorFlow backend.
-    """
-    def __init__(self, k=1, **kwargs):
-        super().__init__(**kwargs)
-        self.input_spec = InputSpec(ndim=3)
-        self.k = k
-
-    def compute_output_shape(self, input_shape):
-        return (input_shape[0], (input_shape[2] * self.k))
-
-    def call(self, inputs):
-        
-        # swap last two dimensions since top_k will be applied along the last dimension
-        shifted_input = tf.transpose(inputs, [0, 2, 1])
-        
-        # extract top_k, returns two tensors [values, indices]
-        top_k = tf.nn.top_k(shifted_input, k=self.k, sorted=True, name=None)[0]
-        
-        # return flattened output
-        return Flatten()(top_k)
-
 def auc_roc(y_true, y_pred):
     # any tensorflow metric
     value, update_op = tf.contrib.metrics.streaming_auc(y_pred, y_true)
@@ -111,6 +87,7 @@ def get_multiChannel_CNN_model(**kwargs):
     num_filter2 = kwargs["num_filter2"]
     kernel_size2 = kwargs["kernel_size2"]
     reg2 = kwargs["reg2"]
+    units = kwargs["dense_units"]
     
     inp1 = Input(shape=(maxlen,))
     x1 = Embedding(max_features, embed_size1, weights=[embedding_matrix1])(inp1)
@@ -125,9 +102,9 @@ def get_multiChannel_CNN_model(**kwargs):
     x2 = Conv1D(num_filter2, kernel_size2, activation='relu',
                 kernel_regularizer=regularizers.l2(reg2))(x2)
     x2 = GlobalMaxPooling1D()(x2)
-    x2 = Flatten()(x2)
 
     merged = concatenate([x1, x2])
+    merged = Dense(units)(merged)
     outp = Dense(6, activation='sigmoid')(merged)
     
     model = Model(inputs=[inp1, inp2], outputs=outp)
@@ -204,9 +181,7 @@ def get_textCNN(**kwargs):
     max_features = kwargs["max_features"]
     embed_size = kwargs["embed_size"]
     embedding_matrix = kwargs["embedding_matrix"]
-    dropout = kwargs["dropout"]
     num_filter = kwargs["num_filter"]
-    kernel_size = kwargs["kernel_size"]
     reg = kwargs["reg"]
     
     inp = Input(shape=(maxlen, ))
@@ -214,23 +189,20 @@ def get_textCNN(**kwargs):
     
     block1 = Conv1D(num_filter, 2, padding='same',
                     kernel_regularizer=regularizers.l2(reg))(embedding)
-    block1 = BatchNormalization()(block1)
     block1 = Activation('relu')(block1)
-    block1 = SpatialDropout1D(dropout)(block1)
+    block1 = BatchNormalization()(block1)
     block1 = GlobalMaxPooling1D()(block1)
     
     block2 = Conv1D(num_filter, 3, padding='same',
                     kernel_regularizer=regularizers.l2(reg))(embedding)
-    block2 = BatchNormalization()(block2)
     block2 = Activation('relu')(block2)
-    block2 = SpatialDropout1D(dropout)(block2)
+    block2 = BatchNormalization()(block2)
     block2 = GlobalMaxPooling1D()(block2)
     
     block3 = Conv1D(num_filter, 4, padding='same',
                     kernel_regularizer=regularizers.l2(reg))(embedding)
-    block3 = BatchNormalization()(block3)
     block3 = Activation('relu')(block3)
-    block3 = SpatialDropout1D(dropout)(block3)
+    block3 = BatchNormalization()(block3)
     block3 = GlobalMaxPooling1D()(block3)
     
     conc = concatenate([block1, block2, block3])
@@ -275,6 +247,78 @@ def get_textRCNN_model(**kwargs):
                   metrics=['accuracy', auc_roc])
     return model
 
+def get_cnn_inception(**kwargs):
+    maxlen = kwargs["maxlen"]
+    max_features = kwargs["max_features"]
+    embed_size = kwargs["embed_size"]
+    embedding_matrix = kwargs["embedding_matrix"]
+    num_filter = kwargs["num_filter"]
+    reg = kwargs["reg"]
+    
+    inp = Input(shape=(maxlen, ))
+    
+    embedding = Embedding(max_features, embed_size, weights=[embedding_matrix])(inp)
+    
+    # first inception block
+    inception1_conv1 = Conv1D(num_filter, 1, padding='same',
+                              kernel_regularizer=regularizers.l2(reg))(embedding)
+    
+    inception1_conv3 = Conv1D(num_filter, 1, padding='same',
+                              kernel_regularizer=regularizers.l2(reg))(embedding)
+    inception1_conv3 = Activation('relu')(inception1_conv3)
+    inception1_conv3 = BatchNormalization()(inception1_conv3)
+    inception1_conv3 = Conv1D(num_filter, 3, padding='same',
+                              kernel_regularizer=regularizers.l2(reg))(inception1_conv3)
+    
+    inception1_conv5 = Conv1D(num_filter, 1, padding='same',
+                              kernel_regularizer=regularizers.l2(reg))(embedding)
+    inception1_conv5 = Activation('relu')(inception1_conv5)
+    inception1_conv5 = BatchNormalization()(inception1_conv5)
+    inception1_conv5 = Conv1D(num_filter, 5, padding='same',
+                              kernel_regularizer=regularizers.l2(reg))(inception1_conv5)
+    
+    inception1_pool = MaxPooling1D(pool_size=3, strides=1, padding='same')(embedding)
+    inception1_pool = Conv1D(num_filter, 1, padding='same',
+                              kernel_regularizer=regularizers.l2(reg))(inception1_pool)
+    
+    inception1 = concatenate([inception1_conv1, inception1_conv3, inception1_conv5, inception1_pool])
+    inception1 = Activation('relu')(inception1)
+    inception1 = BatchNormalization()(inception1)
+    
+    # second inception block
+    inception2_conv1 = Conv1D(num_filter, 1, padding='same',
+                              kernel_regularizer=regularizers.l2(reg))(inception1)
+    
+    inception2_conv3 = Conv1D(num_filter, 1, padding='same',
+                              kernel_regularizer=regularizers.l2(reg))(inception1)
+    inception2_conv3 = Activation('relu')(inception2_conv3)
+    inception2_conv3 = BatchNormalization()(inception2_conv3)
+    inception2_conv3 = Conv1D(num_filter, 3, padding='same',
+                              kernel_regularizer=regularizers.l2(reg))(inception2_conv3)
+    
+    inception2_conv5 = Conv1D(num_filter, 1, padding='same',
+                              kernel_regularizer=regularizers.l2(reg))(inception1)
+    inception2_conv5 = Activation('relu')(inception2_conv5)
+    inception2_conv5 = BatchNormalization()(inception2_conv5)
+    inception2_conv5 = Conv1D(num_filter, 5, padding='same',
+                              kernel_regularizer=regularizers.l2(reg))(inception2_conv5)
+    
+    inception2_pool = MaxPooling1D(pool_size=3, strides=1, padding='same')(inception1)
+    inception2_pool = Conv1D(num_filter, 1, padding='same',
+                              kernel_regularizer=regularizers.l2(reg))(inception2_pool)
+    
+    inception2 = concatenate([inception2_conv1, inception2_conv3, inception2_conv5, inception2_pool])
+    inception2 = Activation('relu')(inception2)
+    inception2 = BatchNormalization()(inception2)
+    
+    outp = Dense(6, activation="sigmoid")(inception2)
+    
+    model = Model(inputs=inp, outputs=outp)
+    model.compile(loss='binary_crossentropy',
+                  optimizer='adam',
+                  metrics=['accuracy', auc_roc])
+
+    return model
 
 '''
 GRU

@@ -1,0 +1,43 @@
+## Train on smaller dataset
+- single layer CNN:
+    - fastText:
+        - "kernel_size": 9,
+        - "num_filter": 500,
+        - "dropout": 0.1
+        - result: 
+            - acc: 97.7272242339% (+/- 0.0262575199%)
+            - roc_auc: 99.3181312003% (+/- 0.0253788972%)
+    - glove:
+        - "kernel_size": 7,
+        - "num_filter": 500,
+        - "dropout": 0.2
+        - result:
+            - acc: 97.7449803026% (+/- 0.0835450620%)
+            - roc_auc: 99.3592604342% (+/- 0.0654025651%)
+            - LB: 0.9662
+
+- multi-channel cnn:
+    - embedding: fastText + glove
+    - "dense_units": 768
+    - result:
+        - acc: 97.7648326617% (+/- 0.1258659665%)
+        - roc_auc: 99.5579392558% (+/- 0.0663592110%)
+
+- DPCNN:
+    - "embedding_matrix": fastText
+    - "embed_size": 300
+    - "kernel_size": 7
+    - "num_filter": 128
+    - "dropout": 0.1
+    - result:
+        - acc: 97.2812337629% (+/- 0.0295419659%)
+        - roc_auc: 99.5784866311% (+/- 0.0094968223%)
+        - LB: 0.9555
+
+
+## Train on original dataset
+- textCNN
+
+- textRCNN
+
+- inception
