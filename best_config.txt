@@ -22,6 +22,7 @@
     - result:
         - acc: 97.7648326617% (+/- 0.1258659665%)
         - roc_auc: 99.5579392558% (+/- 0.0663592110%)
+        - LB: 0.9658
 
 - DPCNN:
     - "embedding_matrix": fastText
