@@ -32,8 +32,6 @@ https://www.kaggle.com/c/jigsaw-toxic-comment-classification-challenge
 
 - rank averaging
 
-- stacking (not useful as said in discussion?) 
-
 - blending
 
 
@@ -54,5 +52,9 @@ https://www.kaggle.com/c/jigsaw-toxic-comment-classification-challenge
 - https://github.com/neptune-ml/kaggle-toxic-starter/tree/master/best_configs
 
 - https://becominghuman.ai/understanding-and-coding-inception-module-in-keras-eb56e9056b4b
+
+
+##### Note:
+These are testing codes. There may be incompatibel errors in iPython notebook due to frequent changes on Python files.
 
 

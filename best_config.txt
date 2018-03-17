@@ -37,8 +37,45 @@
 
 
 ## Train on original dataset
+- single layer CNN (using roc_auc as early stop)
+    - glove: 
+        - loss: 0.07819685489886712 (+/- 0.001775307736627074)
+        - acc: 0.9809958998582076 (+/- 0.00015337156212195894)
+        - roc_auc: 0.9905441536339398 (+/- 0.00022957784478311213)
+        - LB: 0.9786
+- single layer CNN (using loss as early stop)
+    - glove: 
+        LB: 0.9812
 - textCNN
+LB: 09780
 
 - textRCNN
 
 - inception
+0.9763
+
+
+## Train on original dataset + using loss as early stop
+- single layer CNN
+    - glove twitter:
+        - kernel_size: 3
+        - num_filters: 50
+        - dropout: 0.2
+        - result:
+            - loss: 0.045302061441733474 (+/- 0.0007931266631046235)
+            - acc: 0.9829229399625717 (+/- 0.0004347512370955112)
+            - roc_auc: 0.9839322949097496 (+/- 0.0010873170500473907)
+            - LB: 0.9815
+    - glove
+        - kernel_size: 3
+        - num_filter : 300
+        - dropout: 0.2
+        - result:
+            - loss: 0.04493380877026916 (+/- 0.0008816936950137447)
+            - acc: 0.9830409674726788 (+/- 0.0002668991024840636)
+            - roc_auc: 0.9855141711177511 (+/- 0.0015221667521623432)
+            - LB: 0.9822
+- multi channel CNN
+  loss: 0.04678525510604523 (+/- 0.0010002336258586515)
+  acc: 0.9827631391053622 (+/- 0.00039235508267792814)
+  roc_auc: 0.984191416892372 (+/- 0.0018415360633717952)

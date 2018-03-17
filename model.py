@@ -231,10 +231,8 @@ def get_textRCNN_model(**kwargs):
     embedding = Embedding(max_features, embed_size, weights=[embedding_matrix])(inp)
     embedding = SpatialDropout1D(dropout)(embedding)
     
-    r = SpatialDropout1D(dropout)(embedding)
     r = Bidirectional(LSTM(units, return_sequences=True, kernel_regularizer=regularizers.l2(reg)))(r)
     r = SpatialDropout1D(dropout)(r)
-    r = Bidirectional(LSTM(units, return_sequences=True, kernel_regularizer=regularizers.l2(reg)))(r)
     
     conc = concatenate([embedding, r])
     
@@ -315,7 +313,8 @@ def get_cnn_inception(**kwargs):
     inception2 = PReLU()(inception2)
     inception2 = BatchNormalization()(inception2)
     
-    outp = Dense(6, activation="sigmoid")(inception2)
+    outp = GlobalMaxPooling1D()(inception2)
+    outp = Dense(6, activation="sigmoid")(outp)
     
     model = Model(inputs=inp, outputs=outp)
     model.compile(loss='binary_crossentropy',
@@ -323,8 +322,3 @@ def get_cnn_inception(**kwargs):
                   metrics=['accuracy', auc_roc])
 
     return model
-
-'''
-GRU
-see ipython notebooks
-'''

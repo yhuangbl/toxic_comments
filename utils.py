@@ -10,22 +10,29 @@ embed_size_fastText = 300
 embed_size_glove = 300
 embed_size_glove_twitter = 200
 
-earlystop = EarlyStopping(monitor="val_auc_roc", min_delta=0, patience=2, verbose=1, mode="max")
+
 batch_size = 128
 epochs = 50
 
 # utils functions
-def run_5fold(x_train, y_train, x_test, get_model, **kwargs):
+def run_5fold(x_train, y_train, x_test, early_stop_mon, get_model, **kwargs):
     kf = KFold(len(x_train), n_folds=5)
     loss_scores = []
     acc_scores = []
     roc_scores = []
+    if early_stop_mon == "auc_roc": 
+        earlystop = EarlyStopping(monitor="val_auc_roc", min_delta=0, patience=1, verbose=1, mode="max")
+    elif early_stop_mon == "loss":
+        earlystop = EarlyStopping(monitor="val_loss", min_delta=0, patience=1, verbose=1, mode="auto")
+    else:
+        print ("No valid early stopping method")
+        return -1
     
     y_preds = []
     for train, test in kf:
         model = get_model(**kwargs)
         hist = model.fit(x_train[train], y_train[train], 
-                         batch_size=batch_size, epochs=epochs, verbose=0, 
+                         batch_size=batch_size, epochs=epochs, verbose=2, 
                          validation_data=(x_train[test], y_train[test]),
                          callbacks=[earlystop])
         
@@ -45,13 +52,14 @@ def run_5fold(x_train, y_train, x_test, get_model, **kwargs):
         # release gpu memory
         K.clear_session()
     
-    print ("loss: {} (+/- {})".format(np.mean(loss_scores), np.std(loss_scores)))
-    print ("acc: {} (+/- {})".format(np.mean(acc_scores), np.std(acc_scores)))
-    print ("roc_auc: {} (+/- {})\n\n".format(np.mean(roc_scores), np.std(roc_scores)))
+    avg_val_loss = "loss: {} (+/- {})".format(np.mean(loss_scores), np.std(loss_scores))
+    avg_val_acc = "acc: {} (+/- {})".format(np.mean(acc_scores), np.std(acc_scores))
+    avg_roc_auc = "roc_auc: {} (+/- {})\n\n".format(np.mean(roc_scores), np.std(roc_scores))
     
-    return y_preds
+    result = {"avg_val_loss": avg_val_loss, "avg_val_acc": avg_val_acc, "avg_roc_auc": avg_roc_auc, "pred": y_preds}
+    return result
 
-def run_5fold_2channels(x_trains, y_train, x_test, get_model, **kwargs):
+def run_5fold_2channels(x_trains, y_train, x_test, early_stop_mon, get_model, **kwargs):
     # x_train1 and x_train2 are the same
     x_train1 = x_trains[0]
     x_train2 = x_trains[1]
@@ -59,12 +67,19 @@ def run_5fold_2channels(x_trains, y_train, x_test, get_model, **kwargs):
     loss_scores = []
     acc_scores = []
     roc_scores = []
+    if early_stop_mon == "auc_roc": 
+        earlystop = EarlyStopping(monitor="val_auc_roc", min_delta=0, patience=1, verbose=1, mode="max")
+    elif early_stop_mon == "loss":
+        earlystop = EarlyStopping(monitor="val_loss", min_delta=0, patience=1, verbose=1, mode="auto")
+    else:
+        print ("No valid early stopping method")
+        return -1
     
     y_preds = []
     for train, test in kf1:
         model = get_model(**kwargs)
         hist = model.fit([x_train1[train], x_train2[train]], y_train[train],
-                         batch_size=batch_size, epochs=epochs, verbose=0,
+                         batch_size=batch_size, epochs=epochs, verbose=2,
                          validation_data=([x_train1[test], x_train2[test]], y_train[test]),
                          callbacks=[earlystop])
         
@@ -78,17 +93,18 @@ def run_5fold_2channels(x_trains, y_train, x_test, get_model, **kwargs):
         acc_scores.append(val_acc)
         roc_scores.append(val_auc_roc)        
         
-        y_pred = model.predict(x_test, batch_size=batch_size)
+        y_pred = model.predict([x_test, x_test], batch_size=batch_size)
         y_preds.append(y_pred)
         
         # release gpu memory
         K.clear_session()
         
-    print ("loss: {} (+/- {})".format(np.mean(loss_scores), np.std(loss_scores)))
-    print ("acc: {} (+/- {})".format(np.mean(acc_scores), np.std(acc_scores)))
-    print ("roc_auc: {} (+/- {})\n\n".format(np.mean(roc_scores), np.std(roc_scores)))
+    avg_val_loss = "loss: {} (+/- {})".format(np.mean(loss_scores), np.std(loss_scores))
+    avg_val_acc = "acc: {} (+/- {})".format(np.mean(acc_scores), np.std(acc_scores))
+    avg_roc_auc = "roc_auc: {} (+/- {})\n\n".format(np.mean(roc_scores), np.std(roc_scores))
     
-    return y_preds
+    result = {"avg_val_loss": avg_val_loss, "avg_val_acc": avg_val_acc, "avg_roc_auc": avg_roc_auc, "pred": y_preds}
+    return result
 
 def average_elementwise(ys):
     y = np.mean(ys, axis=0)
@@ -98,3 +114,12 @@ def write_prediction(ys, submission, output_file):
     y_prediction = average_elementwise(ys)
     submission[["toxic", "severe_toxic", "obscene", "threat", "insult", "identity_hate"]] = y_prediction
     submission.to_csv(output_file, index=False)
+
+def eval_results(results):
+    for key in results:
+        result = results[key]
+        print ("key: {}".format(key))
+        print (result["avg_val_loss"])
+        print (result["avg_val_acc"])
+        print (result["avg_roc_auc"])
+        print ()
