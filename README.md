@@ -58,3 +58,12 @@ https://www.kaggle.com/c/jigsaw-toxic-comment-classification-challenge
 These are testing codes. There may be incompatibel errors in iPython notebook due to frequent changes on Python files.
 
 
+--------------------------------
+## What the winners share
+
+- No.1: https://www.kaggle.com/c/jigsaw-toxic-comment-classification-challenge/discussion/52557
+- No.2: https://www.kaggle.com/c/jigsaw-toxic-comment-classification-challenge/discussion/52612
+- No.5: https://www.kaggle.com/c/jigsaw-toxic-comment-classification-challenge/discussion/52630
+- No.25: https://www.kaggle.com/c/jigsaw-toxic-comment-classification-challenge/discussion/52647
+- No.34: https://www.kaggle.com/c/jigsaw-toxic-comment-classification-challenge/discussion/52645
+- single model: https://www.kaggle.com/c/jigsaw-toxic-comment-classification-challenge/discussion/52644
