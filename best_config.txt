@@ -1,61 +1,10 @@
-## Train on smaller dataset
-- single layer CNN:
-    - fastText:
-        - "kernel_size": 9,
-        - "num_filter": 500,
-        - "dropout": 0.1
-        - result: 
-            - acc: 97.7272242339% (+/- 0.0262575199%)
-            - roc_auc: 99.3181312003% (+/- 0.0253788972%)
-    - glove:
-        - "kernel_size": 7,
-        - "num_filter": 500,
-        - "dropout": 0.2
-        - result:
-            - acc: 97.7449803026% (+/- 0.0835450620%)
-            - roc_auc: 99.3592604342% (+/- 0.0654025651%)
-            - LB: 0.9662
+# Global parameters:
+- maxlen: 200
+- max_features: 30000
+- early stopping based on val_loss
+- batch_size: 128
 
-- multi-channel cnn:
-    - embedding: fastText + glove
-    - "dense_units": 768
-    - result:
-        - acc: 97.7648326617% (+/- 0.1258659665%)
-        - roc_auc: 99.5579392558% (+/- 0.0663592110%)
-        - LB: 0.9658
-
-- DPCNN:
-    - "embedding_matrix": fastText
-    - "embed_size": 300
-    - "kernel_size": 7
-    - "num_filter": 128
-    - "dropout": 0.1
-    - result:
-        - acc: 97.2812337629% (+/- 0.0295419659%)
-        - roc_auc: 99.5784866311% (+/- 0.0094968223%)
-        - LB: 0.9555
-
-
-## Train on original dataset
-- single layer CNN (using roc_auc as early stop)
-    - glove: 
-        - loss: 0.07819685489886712 (+/- 0.001775307736627074)
-        - acc: 0.9809958998582076 (+/- 0.00015337156212195894)
-        - roc_auc: 0.9905441536339398 (+/- 0.00022957784478311213)
-        - LB: 0.9786
-- single layer CNN (using loss as early stop)
-    - glove: 
-        LB: 0.9812
-- textCNN
-LB: 09780
-
-- textRCNN
-
-- inception
-0.9763
-
-
-## Train on original dataset + using loss as early stop
+## Model specific parameters:
 - single layer CNN
     - glove twitter:
         - kernel_size: 3
@@ -76,6 +25,35 @@ LB: 09780
             - roc_auc: 0.9855141711177511 (+/- 0.0015221667521623432)
             - LB: 0.9822
 - multi channel CNN
-  loss: 0.04678525510604523 (+/- 0.0010002336258586515)
-  acc: 0.9827631391053622 (+/- 0.00039235508267792814)
-  roc_auc: 0.984191416892372 (+/- 0.0018415360633717952)
+    - use configs for glove twitter & glove
+    - dense layer units: 128
+    - result:
+      - loss: 0.04586434642204125 (+/- 0.0009944483156291547)
+      - acc: 0.9828498283484253 (+/- 0.0002220085391398572)
+      - roc_auc: 0.9843891096700583 (+/- 0.0014595208143253504)
+
+- textCNN
+    - kernel_size: 3
+    - num_filters: 50,
+    - dropout: 0.2
+    - embedding_matrix: glove
+    - embed_size: 300
+    - result:
+        - loss: 0.04706004063530118 (+/- 0.0006838306930178759)
+        - acc: 0.9824341330567711 (+/- 0.0003545645226532429)
+        - roc_auc: 0.9810236005723141 (+/- 0.0018057481516012563)
+
+- textRCNN
+
+
+
+- inception
+    - kernel_size: 3
+    - num_filters: 50,
+    - dropout: 0.2
+    - embedding_matrix: glove
+    - embed_size: 300
+    - result:
+        loss: 0.04468144988842106 (+/- 0.0007784231426185782)
+        acc: 0.9831161680493627 (+/- 0.0002944974584065599)
+        roc_auc: 0.9820037976582707 (+/- 0.0011390582860806907)

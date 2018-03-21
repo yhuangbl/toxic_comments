@@ -231,7 +231,7 @@ def get_textRCNN_model(**kwargs):
     embedding = Embedding(max_features, embed_size, weights=[embedding_matrix])(inp)
     embedding = SpatialDropout1D(dropout)(embedding)
     
-    r = Bidirectional(LSTM(units, return_sequences=True, kernel_regularizer=regularizers.l2(reg)))(r)
+    r = Bidirectional(LSTM(units, return_sequences=True, kernel_regularizer=regularizers.l2(reg)))(embedding)
     r = SpatialDropout1D(dropout)(r)
     
     conc = concatenate([embedding, r])
